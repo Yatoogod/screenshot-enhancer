@@ -1,7 +1,7 @@
 import os
 from telegram import Update, InputFile
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
-from PIL import Image, ImageDraw, ImageFilter
+from PIL import Image, ImageDraw
 import io
 
 # Your Telegram bot token
@@ -15,27 +15,19 @@ def add_rounded_corners(image, radius):
     image.putalpha(mask)
     return image
 
+# Function to add a border around the image
+def add_border(image, border_color=(0, 0, 0), border_thickness=5):
+    draw = ImageDraw.Draw(image)
+    width, height = image.size
+    draw.rounded_rectangle((border_thickness // 2, border_thickness // 2, width - border_thickness // 2, height - border_thickness // 2),
+                           radius=50, outline=border_color, width=border_thickness)
+    return image
+
 # Function to create a plain white background
 def create_white_background(width, height):
     return Image.new("RGB", (width, height), (255, 255, 255))  # White background
 
-# Function to create shadow that follows the curved corners
-def create_curved_shadow(image, radius, blur_radius=100, offset=(20, 20), shadow_color=(0, 0, 0, 128)):
-    # Create a shadow by copying the shape of the rounded image and applying the blur
-    shadow_image = Image.new('RGBA', image.size, (0, 0, 0, 0))
-    shadow_draw = ImageDraw.Draw(shadow_image)
-    shadow_draw.rounded_rectangle((0, 0, image.size[0], image.size[1]), radius=radius, fill=shadow_color)
-
-    # Apply a Gaussian blur to the shadow for the blur effect
-    shadow_image = shadow_image.filter(ImageFilter.GaussianBlur(blur_radius))
-
-    # Create a new image to hold the shadow with the correct offset
-    shadow_with_offset = Image.new("RGBA", (image.size[0] + offset[0], image.size[1] + offset[1]), (0, 0, 0, 0))
-    shadow_with_offset.paste(shadow_image, offset, shadow_image)
-
-    return shadow_with_offset
-
-# Function to enhance the screenshot by adding a white background, curved corners, zoom, and realistic shadow
+# Function to enhance the screenshot by adding a white background, curved corners, and border
 def enhance_image(screenshot):
     width, height = screenshot.size
 
@@ -48,11 +40,13 @@ def enhance_image(screenshot):
     radius = 50
     screenshot = add_rounded_corners(screenshot, radius)
 
+    # Add a thin border around the screenshot (border color and thickness can be changed)
+    border_thickness = 5
+    border_color = (0, 0, 0)  # Black border, change to your desired color
+    screenshot = add_border(screenshot, border_color=border_color, border_thickness=border_thickness)
+
     # Create the white background
     background = create_white_background(new_size[0] + 200, new_size[1] + 200)
-
-    # Create a shadow with pure black and 50% opacity
-    shadow = create_curved_shadow(screenshot, radius, blur_radius=80, offset=(30, 30), shadow_color=(0, 0, 0, 128))
 
     # Create a new RGBA image to hold the combined result
     combined_image = Image.new("RGBA", background.size, (255, 255, 255, 0))
@@ -60,11 +54,7 @@ def enhance_image(screenshot):
     # Calculate offset for centering the screenshot
     offset = ((background.width - screenshot.width) // 2, (background.height - screenshot.height) // 2)
 
-    # Paste the shadow behind the screenshot
-    shadow_offset = (offset[0] - 30, offset[1] - 30)  # Shadow offset for more visibility
-    combined_image.paste(shadow, shadow_offset, shadow)
-
-    # Paste the screenshot with rounded corners on top of the shadow
+    # Paste the screenshot with rounded corners and border on the white background
     combined_image.paste(screenshot, offset, screenshot)
 
     # Combine the RGBA image with the white background
