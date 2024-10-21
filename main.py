@@ -1,10 +1,10 @@
 import os
 from telegram import Update, InputFile
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFilter
 import io
 
-# Your Telegram bot token
+# Your updated Telegram bot token
 TOKEN = '6264504776:AAFPKj38UwNcA_ARSk0ZlLfc2nlJtxfPbGU'
 
 # Function to add curved corners to the image
@@ -15,19 +15,44 @@ def add_rounded_corners(image, radius):
     image.putalpha(mask)
     return image
 
-# Function to add a border around the image
-def add_border(image, border_color=(0, 0, 0), border_thickness=5):
+# Function to add a thicker border around the image
+def add_border(image, border_color=(0, 0, 0), border_thickness=5):  # Increased thickness to 5
     draw = ImageDraw.Draw(image)
     width, height = image.size
     draw.rounded_rectangle((border_thickness // 2, border_thickness // 2, width - border_thickness // 2, height - border_thickness // 2),
-                           radius=50, outline=border_color, width=border_thickness)
+                           radius=15, outline=border_color, width=border_thickness)
     return image
 
-# Function to create a plain white background
-def create_white_background(width, height):
-    return Image.new("RGB", (width, height), (255, 255, 255))  # White background
+# Function to create a smooth gradient background from red to pink to purple
+def create_gradient_background(width, height):
+    gradient = Image.new('RGB', (width, height), color=0)
+    draw = ImageDraw.Draw(gradient)
 
-# Function to enhance the screenshot by adding a white background, curved corners, and border
+    # Starting colors: Red to Pink to Purple
+    start_color = (255, 0, 0)      # Red
+    mid_color = (255, 105, 180)    # Pink
+    end_color = (128, 0, 128)      # Purple
+
+    # Draw gradient for each line (smooth transition)
+    for y in range(height):
+        ratio = y / height
+        if ratio < 0.5:
+            # Red to Pink
+            r = int(start_color[0] + ratio * 2 * (mid_color[0] - start_color[0]))
+            g = int(start_color[1] + ratio * 2 * (mid_color[1] - start_color[1]))
+            b = int(start_color[2] + ratio * 2 * (mid_color[2] - start_color[2]))
+        else:
+            # Pink to Purple
+            ratio2 = (ratio - 0.5) * 2
+            r = int(mid_color[0] + ratio2 * (end_color[0] - mid_color[0]))
+            g = int(mid_color[1] + ratio2 * (end_color[1] - mid_color[1]))
+            b = int(mid_color[2] + ratio2 * (end_color[2] - mid_color[2]))
+        
+        draw.line([(0, y), (width, y)], fill=(r, g, b))
+
+    return gradient
+
+# Function to enhance the screenshot by adding a colorful gradient background, curved corners, and a thick border
 def enhance_image(screenshot):
     width, height = screenshot.size
 
@@ -37,16 +62,16 @@ def enhance_image(screenshot):
     screenshot = screenshot.resize(new_size, Image.LANCZOS)  # Use LANCZOS for high-quality resizing
 
     # Add rounded corners to the screenshot
-    radius = 50
+    radius = 15  # Reduced the corner radius to make the corners less rounded
     screenshot = add_rounded_corners(screenshot, radius)
 
-    # Add a thin border around the screenshot (border color and thickness can be changed)
-    border_thickness = 5
+    # Add a thicker border around the screenshot
+    border_thickness = 5  # Increased the border thickness to make it more noticeable
     border_color = (0, 0, 0)  # Black border, change to your desired color
     screenshot = add_border(screenshot, border_color=border_color, border_thickness=border_thickness)
 
-    # Create the white background
-    background = create_white_background(new_size[0] + 200, new_size[1] + 200)
+    # Create the colorful gradient background
+    background = create_gradient_background(new_size[0] + 200, new_size[1] + 200)
 
     # Create a new RGBA image to hold the combined result
     combined_image = Image.new("RGBA", background.size, (255, 255, 255, 0))
@@ -54,10 +79,10 @@ def enhance_image(screenshot):
     # Calculate offset for centering the screenshot
     offset = ((background.width - screenshot.width) // 2, (background.height - screenshot.height) // 2)
 
-    # Paste the screenshot with rounded corners and border on the white background
+    # Paste the screenshot with rounded corners and a thick border on the gradient background
     combined_image.paste(screenshot, offset, screenshot)
 
-    # Combine the RGBA image with the white background
+    # Merge the RGBA image with the gradient background
     final_image = Image.alpha_composite(Image.new("RGBA", background.size, (255, 255, 255, 255)), combined_image).convert("RGB")
 
     return final_image
