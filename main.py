@@ -66,10 +66,6 @@ def enhance_image(screenshot):
 
     return background
 
-# Start command handler
-def start(update, context):
-    update.message.reply_text("Send me a screenshot to enhance!")
-
 # Handle images (screenshots)
 def handle_image(update, context):
     photo_file = update.message.photo[-1].get_file()  # Get the largest available photo
@@ -100,7 +96,6 @@ def main():
     dp = updater.dispatcher
 
     # Add handlers
-    dp.add_handler(CommandHandler("start", start))
     dp.add_handler(MessageHandler(Filters.photo, handle_image))
 
     # Start the Bot
