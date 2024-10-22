@@ -5,7 +5,7 @@ from PIL import Image, ImageDraw
 import io
 
 # Your updated Telegram bot token
-TOKEN = '6863982081:AAEQTE4Nv8aMsFn1AMtIJrlwCX9HWIPNPIs'
+TOKEN = '6454133526:AAFMG9qJUO1RziEY4s_DzursYY4351dOnD8'
 
 # Function to add curved corners to the image
 def add_rounded_corners(image, radius):
@@ -15,34 +15,26 @@ def add_rounded_corners(image, radius):
     image.putalpha(mask)
     return image
 
-# Function to create a smooth gradient background from red to pink to purple
+# Function to create a smooth gradient background from red to purple
 def create_gradient_background(width, height):
     gradient = Image.new('RGB', (width, height))
     draw = ImageDraw.Draw(gradient)
 
-    # Colors for gradient (Red, Pink, Purple)
-    start_color = (255, 0, 0)      # Red
-    mid_color = (255, 105, 180)    # Pink
-    end_color = (128, 0, 128)      # Purple
+    # Colors for gradient (Red to Purple)
+    start_color = (255, 0, 0)  # Red
+    end_color = (128, 0, 128)  # Purple
 
+    # Generate gradient
     for y in range(height):
         ratio = y / height
-        if ratio < 0.5:
-            # Red to Pink
-            r = int(start_color[0] + (mid_color[0] - start_color[0]) * ratio * 2)
-            g = int(start_color[1] + (mid_color[1] - start_color[1]) * ratio * 2)
-            b = int(start_color[2] + (mid_color[2] - start_color[2]) * ratio * 2)
-        else:
-            # Pink to Purple
-            ratio2 = (ratio - 0.5) * 2
-            r = int(mid_color[0] + (end_color[0] - mid_color[0]) * ratio2)
-            g = int(mid_color[1] + (end_color[1] - mid_color[1]) * ratio2)
-            b = int(mid_color[2] + (end_color[2] - mid_color[2]) * ratio2)
+        r = int(start_color[0] + (end_color[0] - start_color[0]) * ratio)
+        g = int(start_color[1] + (end_color[1] - start_color[1]) * ratio)
+        b = int(start_color[2] + (end_color[2] - start_color[2]) * ratio)
         draw.line([(0, y), (width, y)], fill=(r, g, b))
 
     return gradient
 
-# Function to enhance the screenshot by adding a colorful gradient background and curved corners (no border)
+# Function to enhance the screenshot by adding a red-to-purple gradient background and curved corners (no border)
 def enhance_image(screenshot):
     width, height = screenshot.size
 
@@ -55,7 +47,7 @@ def enhance_image(screenshot):
     radius = 15  # Reduced the corner radius to make the corners less rounded
     screenshot = add_rounded_corners(screenshot, radius)
 
-    # Create the colorful gradient background
+    # Create the red-to-purple gradient background
     background = create_gradient_background(new_size[0] + 200, new_size[1] + 200)
 
     # Calculate offset for centering the screenshot
