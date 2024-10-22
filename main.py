@@ -7,7 +7,7 @@ import io
 # Your updated Telegram bot token
 TOKEN = '6454133526:AAFMG9qJUO1RziEY4s_DzursYY4351dOnD8'
 
-# Function to add curved corners to the image
+# Function to add more curved corners to the image
 def add_rounded_corners(image, radius):
     mask = Image.new("L", image.size, 0)
     draw = ImageDraw.Draw(mask)
@@ -15,14 +15,14 @@ def add_rounded_corners(image, radius):
     image.putalpha(mask)
     return image
 
-# Function to create a smooth gradient background from red to purple
+# Function to create a direct gradient from red to purple
 def create_gradient_background(width, height):
     gradient = Image.new('RGB', (width, height))
     draw = ImageDraw.Draw(gradient)
 
-    # Colors for gradient (Red to Purple)
-    start_color = (255, 0, 0)  # Red
-    end_color = (128, 0, 128)  # Purple
+    # Direct Red to Purple colors for gradient
+    start_color = (255, 0, 0)     # Red
+    end_color = (128, 0, 128)     # Purple
 
     # Generate gradient
     for y in range(height):
@@ -34,7 +34,7 @@ def create_gradient_background(width, height):
 
     return gradient
 
-# Function to enhance the screenshot by adding a red-to-purple gradient background and curved corners (no border)
+# Function to enhance the screenshot by adding a red-to-purple gradient background and more curved corners (no border)
 def enhance_image(screenshot):
     width, height = screenshot.size
 
@@ -43,8 +43,8 @@ def enhance_image(screenshot):
     new_size = (int(width * zoom_factor), int(height * zoom_factor))
     screenshot = screenshot.resize(new_size, Image.LANCZOS)  # Use LANCZOS for high-quality resizing
 
-    # Add rounded corners to the screenshot
-    radius = 15  # Reduced the corner radius to make the corners less rounded
+    # Add more rounded corners to the screenshot
+    radius = 30  # Increase corner radius for more curvature
     screenshot = add_rounded_corners(screenshot, radius)
 
     # Create the red-to-purple gradient background
@@ -53,7 +53,7 @@ def enhance_image(screenshot):
     # Calculate offset for centering the screenshot
     offset = ((background.width - screenshot.width) // 2, (background.height - screenshot.height) // 2)
 
-    # Paste the screenshot with rounded corners on the gradient background
+    # Paste the screenshot with more rounded corners on the gradient background
     background.paste(screenshot, offset, screenshot)
 
     return background
